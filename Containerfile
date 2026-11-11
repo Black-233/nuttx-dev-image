@@ -10,7 +10,7 @@ RUN apt-get update && \
     libgmp-dev libmpc-dev libmpfr-dev libisl-dev binutils-dev libelf-dev \
     libexpat1-dev gcc-multilib g++-multilib picocom u-boot-tools util-linux \
     python3 python3-pip ccache bear clangd clang-format openocd gdb-multiarch kconfig-frontends \
-    ripgrep fd-find \
+    ripgrep fd-find && \
     ln -s $(which fdfind) /usr/local/bin/fd && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
