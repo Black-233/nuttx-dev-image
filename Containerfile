@@ -1,39 +1,43 @@
+# Containerfile
+# author: melon
+
 FROM ubuntu:24.04
 
-ENV DEBIAN_FRONTEND="noninteractive"
+ARG DEBIAN_FRONTEND=noninteractive
 
 # Prerequisites
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-    bison flex gettext texinfo libncurses5-dev libncursesw5-dev xxd curl ca-certificates \
-    git gperf automake libtool pkg-config build-essential gperf genromfs \
+    bison flex gettext texinfo libncurses5-dev libncursesw5-dev xxd \
+    curl ca-certificates \
+    git gperf automake libtool pkg-config build-essential genromfs \
     libgmp-dev libmpc-dev libmpfr-dev libisl-dev binutils-dev libelf-dev \
     libexpat1-dev gcc-multilib g++-multilib picocom u-boot-tools util-linux \
-    python3 python3-pip ccache bear clangd clang-format openocd gdb-multiarch kconfig-frontends \
+    python3 python3-pip python3-venv \
+    ccache bear clangd clang-format openocd gdb-multiarch \
     ripgrep fd-find && \
-    ln -s $(which fdfind) /usr/local/bin/fd && \
+    ln -sf "$(which fdfind)" /usr/local/bin/fd && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
-RUN pip install --no-cache-dir --break-system-packages esptool kconfiglib
+RUN python3 -m venv /opt/venv && \
+    /opt/venv/bin/pip install --no-cache-dir esptool kconfiglib
+ENV PATH="/opt/venv/bin:$PATH"
 
-# RISCV toolchain
+# RISC-V toolchain
 RUN mkdir -p /tools/riscv-none-elf-gcc && \
-    curl -s -L "https://github.com/xpack-dev-tools/riscv-none-elf-gcc-xpack/releases/download/v13.2.0-2/xpack-riscv-none-elf-gcc-13.2.0-2-linux-x64.tar.gz" \
+    curl -fL "https://github.com/xpack-dev-tools/riscv-none-elf-gcc-xpack/releases/download/v13.2.0-2/xpack-riscv-none-elf-gcc-13.2.0-2-linux-x64.tar.gz" \
     | tar -C /tools/riscv-none-elf-gcc --strip-components 1 -xz
 
 ENV PATH="/tools/riscv-none-elf-gcc/bin:$PATH"
 
-# Configure ccache
-RUN mkdir -p /ccache && \
-    chmod 666 /ccache && \
-    mkdir -p /tools/ccache/bin && \
-    ln -sf $(which ccache) /tools/ccache/bin/riscv-none-elf-gcc && \
-    ln -sf $(which ccache) /tools/ccache/bin/riscv-none-elf-g++
+# ccache
+RUN mkdir -p /ccache /tools/ccache/bin && \
+    chmod 777 /ccache && \
+    ln -sf /usr/bin/ccache /tools/ccache/bin/riscv-none-elf-gcc && \
+    ln -sf /usr/bin/ccache /tools/ccache/bin/riscv-none-elf-g++
 
 ENV PATH="/tools/ccache/bin:$PATH" \
     CCACHE_DIR="/ccache"
-
-RUN mkdir -p /workspace
 
 WORKDIR /workspace
 
