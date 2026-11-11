@@ -1,0 +1,33 @@
+name: Build OCI Image
+
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Build image
+        uses: redhat-actions/buildah-build@v3
+        with:
+          image: nuttx-dev-image
+          tags: latest
+          containerfiles: ./Containerfile
+
+      - name: Export image
+        run: |
+          buildah push nuttx-dev-image:latest \
+            oci-archive:nuttx-dev-image.tar:nuttx-dev:latest
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: nuttx-dev-image
+          path: nuttx-dev-image.tar
+          retention-days: 7
