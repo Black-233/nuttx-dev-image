@@ -33,4 +33,8 @@ RUN mkdir -p /ccache && \
 ENV PATH="/tools/ccache/bin:$PATH" \
     CCACHE_DIR="/ccache"
 
+RUN mkdir -p /workspace
+
+WORKDIR /workspace
+
 CMD ["/bin/bash"]
